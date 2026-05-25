@@ -487,14 +487,35 @@ if not st.session_state.login_correcto:
         st.markdown("""
         <div class="login-card">
           <div style="text-align:center; margin-bottom:32px;">
-            <div style="
-                width:64px; height:64px;
-                background:linear-gradient(135deg,#1d4ed8,#1e40af);
-                border-radius:16px;
-                display:flex; align-items:center; justify-content:center;
-                font-size:28px; margin:0 auto 18px;
-                box-shadow:0 6px 20px rgba(29,78,216,0.30);
-            ">🏢</div>
+            <div style="margin:0 auto 20px; width:72px; filter:drop-shadow(0 8px 20px rgba(29,78,216,0.38));">
+            <svg width="72" height="72" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="lg_login" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#60a5fa"/>
+                  <stop offset="0.5" stop-color="#2563eb"/>
+                  <stop offset="1" stop-color="#1e40af"/>
+                </linearGradient>
+                <linearGradient id="lg_shine" x1="50" y1="0" x2="50" y2="55" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="white" stop-opacity="0.13"/>
+                  <stop offset="1" stop-color="white" stop-opacity="0"/>
+                </linearGradient>
+              </defs>
+              <rect width="100" height="100" rx="28" fill="url(#lg_login)"/>
+              <rect width="100" height="55" rx="28" fill="url(#lg_shine)"/>
+              <!-- Top person -->
+              <circle cx="50" cy="24" r="14" fill="white"/>
+              <path d="M24 60C24 44 76 44 76 60" fill="white"/>
+              <!-- Bottom left -->
+              <circle cx="18" cy="71" r="10" fill="white" fill-opacity="0.82"/>
+              <path d="M3 94C3 83 33 83 33 94" fill="white" fill-opacity="0.82"/>
+              <!-- Bottom right -->
+              <circle cx="82" cy="71" r="10" fill="white" fill-opacity="0.82"/>
+              <path d="M67 94C67 83 97 83 97 94" fill="white" fill-opacity="0.82"/>
+              <!-- Connectors -->
+              <rect x="48" y="60" width="4" height="10" rx="2" fill="white" fill-opacity="0.38"/>
+              <rect x="18" y="67" width="64" height="3.5" rx="1.75" fill="white" fill-opacity="0.38"/>
+            </svg>
+            </div>
             <div style="font-size:22px; font-weight:800; color:#0f172a; letter-spacing:-0.5px;">
                 RRHH Executive Pro
             </div>
@@ -614,15 +635,29 @@ def render_banner(css_class, icon, title, subtitle, badge=""):
 st.sidebar.markdown("""
 <div style="padding:24px 12px 8px;">
     <div style="display:flex; align-items:center; gap:11px;">
-        <div style="
-            width:38px; height:38px;
-            background:linear-gradient(135deg,#1d4ed8,#1e40af);
-            border-radius:11px;
-            display:flex; align-items:center; justify-content:center;
-            font-size:18px;
-            box-shadow:0 3px 10px rgba(29,78,216,0.4);
-            flex-shrink:0;
-        ">🏢</div>
+        <div style="flex-shrink:0; filter:drop-shadow(0 3px 8px rgba(29,78,216,0.45));">
+        <svg width="42" height="42" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="sb_bg" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#60a5fa"/><stop offset="1" stop-color="#1e40af"/>
+            </linearGradient>
+          </defs>
+          <rect width="100" height="100" rx="26" fill="url(#sb_bg)"/>
+          <rect width="100" height="46" rx="26" fill="white" fill-opacity="0.07"/>
+          <!-- Top person -->
+          <circle cx="50" cy="25" r="13" fill="white"/>
+          <path d="M26 59C26 45 74 45 74 59" fill="white"/>
+          <!-- Bottom left person -->
+          <circle cx="19" cy="71" r="9" fill="white" fill-opacity="0.80"/>
+          <path d="M5 92C5 83 33 83 33 92" fill="white" fill-opacity="0.80"/>
+          <!-- Bottom right person -->
+          <circle cx="81" cy="71" r="9" fill="white" fill-opacity="0.80"/>
+          <path d="M67 92C67 83 95 83 95 92" fill="white" fill-opacity="0.80"/>
+          <!-- Connector lines -->
+          <rect x="48" y="59" width="4" height="11" rx="2" fill="white" fill-opacity="0.40"/>
+          <rect x="19" y="67" width="62" height="3" rx="1.5" fill="white" fill-opacity="0.40"/>
+        </svg>
+        </div>
         <div>
             <div style="font-size:15px; font-weight:800; color:white; letter-spacing:-0.2px;">RRHH Pro</div>
             <div style="font-size:10px; color:rgba(255,255,255,0.38); letter-spacing:1px; text-transform:uppercase; margin-top:1px;">Executive Suite</div>
