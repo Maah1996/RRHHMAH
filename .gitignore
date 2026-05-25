@@ -1,0 +1,16 @@
+# Base de datos local (se crea automáticamente al ejecutar)
+*.db
+*.sqlite
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.env
+
+# Streamlit
+.streamlit/secrets.toml
+
+# Sistema
+.DS_Store
+Thumbs.db
