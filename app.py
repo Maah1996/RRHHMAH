@@ -494,8 +494,24 @@ cursor  = conn.cursor()
 
 def crear_tablas():
     cursor.execute("""CREATE TABLE IF NOT EXISTS empleados (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        nombre TEXT NOT NULL, cargo TEXT, dias_vacaciones INTEGER DEFAULT 15
+        id                   INTEGER PRIMARY KEY AUTOINCREMENT,
+        nombre               TEXT NOT NULL,
+        rut                  TEXT,
+        fecha_nacimiento     TEXT,
+        nacionalidad         TEXT DEFAULT 'Chilena',
+        direccion            TEXT,
+        email                TEXT,
+        telefono             TEXT,
+        telefono_emergencia  TEXT,
+        contacto_emergencia  TEXT,
+        fecha_ingreso        TEXT,
+        cargo                TEXT,
+        area                 TEXT,
+        tipo_contrato        TEXT DEFAULT 'Indefinido',
+        afp                  TEXT,
+        salud                TEXT,
+        dias_vacaciones      INTEGER DEFAULT 15,
+        observaciones        TEXT
     )""")
     cursor.execute("""CREATE TABLE IF NOT EXISTS vacaciones (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -508,6 +524,30 @@ def crear_tablas():
     conn.commit()
 
 crear_tablas()
+
+# Migración: agrega columnas nuevas si la tabla ya existía
+_COLUMNAS_NUEVAS = [
+    ("rut",                 "TEXT"),
+    ("fecha_nacimiento",    "TEXT"),
+    ("nacionalidad",        "TEXT"),
+    ("direccion",           "TEXT"),
+    ("email",               "TEXT"),
+    ("telefono",            "TEXT"),
+    ("telefono_emergencia", "TEXT"),
+    ("contacto_emergencia", "TEXT"),
+    ("fecha_ingreso",       "TEXT"),
+    ("area",                "TEXT"),
+    ("tipo_contrato",       "TEXT"),
+    ("afp",                 "TEXT"),
+    ("salud",               "TEXT"),
+    ("observaciones",       "TEXT"),
+]
+for _col, _tipo in _COLUMNAS_NUEVAS:
+    try:
+        cursor.execute(f"ALTER TABLE empleados ADD COLUMN {_col} {_tipo}")
+        conn.commit()
+    except Exception:
+        pass  # columna ya existe
 
 # =========================================================
 # FUNCIONES
@@ -711,50 +751,150 @@ elif menu == "Empleados":
 
     render_banner("banner-empleados",
         "Gestión de Empleados",
-        "Registro, consulta y administración integral del personal de la empresa",
-        "RRHH · Directorio")
+        "Ficha completa del personal · Datos personales, laborales y de contacto",
+        "RRHH · Directorio de Personal")
 
-    tab1, tab2 = st.tabs(["  Nuevo Empleado  ", "  Directorio y Administración  "])
+    tab1, tab2, tab3 = st.tabs([
+        "  Nuevo Empleado  ",
+        "  Directorio  ",
+        "  Ver Ficha  "
+    ])
+
+    CONTRATOS = ["Indefinido", "Plazo Fijo", "Part-Time", "Por Obra o Faena", "Honorarios", "Otro"]
+    AFPS      = ["Habitat", "Capital", "Cuprum", "Modelo", "PlanVital", "ProVida", "Uno AFP", "Ninguna"]
+    SALUD     = ["Fonasa A", "Fonasa B", "Fonasa C", "Fonasa D", "Isapre", "Sin previsión"]
+    NACION    = ["Chilena", "Argentina", "Boliviana", "Peruana", "Colombiana", "Venezolana",
+                 "Ecuatoriana", "Brasileña", "Española", "Otra"]
 
     with tab1:
         with st.form("form_empleado"):
-            col1, col2 = st.columns(2)
-            with col1:
+
+            # ── Sección 1: Datos Personales ──────────────────
+            st.markdown("""
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+              <div style="width:4px;height:20px;background:#1d4ed8;border-radius:2px;"></div>
+              <span style="font-size:13px;font-weight:700;color:#0f172a;text-transform:uppercase;
+                    letter-spacing:0.8px;">Datos Personales</span>
+            </div>""", unsafe_allow_html=True)
+
+            c1, c2 = st.columns(2)
+            with c1:
                 nombre = st.text_input("Nombre completo *", placeholder="Ej: Juan Pérez González")
-            with col2:
-                cargo  = st.text_input("Cargo / Función", placeholder="Ej: Jefe de Operaciones")
-            dias = st.number_input("Días de vacaciones asignados", min_value=0, max_value=60, step=1, value=15)
-            st.markdown("<div style='height:4px'></div>", unsafe_allow_html=True)
-            if st.form_submit_button("Registrar Empleado", use_container_width=True):
+                fecha_nac = st.date_input("Fecha de nacimiento",
+                                          value=None,
+                                          min_value=datetime(1940,1,1).date(),
+                                          max_value=datetime.today().date(),
+                                          format="DD/MM/YYYY")
+                direccion = st.text_input("Dirección", placeholder="Ej: Av. Las Condes 1234, Santiago")
+            with c2:
+                rut = st.text_input("RUT *", placeholder="Ej: 12.345.678-9")
+                nacionalidad = st.selectbox("Nacionalidad", NACION)
+                email = st.text_input("Correo electrónico", placeholder="Ej: juan.perez@empresa.cl")
+
+            # ── Sección 2: Contacto ───────────────────────────
+            st.markdown("""
+            <div style="display:flex;align-items:center;gap:10px;margin:18px 0 14px;">
+              <div style="width:4px;height:20px;background:#059669;border-radius:2px;"></div>
+              <span style="font-size:13px;font-weight:700;color:#0f172a;text-transform:uppercase;
+                    letter-spacing:0.8px;">Contacto y Emergencia</span>
+            </div>""", unsafe_allow_html=True)
+
+            c1, c2, c3 = st.columns(3)
+            with c1:
+                telefono = st.text_input("N.° Teléfono", placeholder="+56 9 1234 5678")
+            with c2:
+                tel_emerg = st.text_input("N.° Tel. Emergencia", placeholder="+56 9 8765 4321")
+            with c3:
+                contacto_emerg = st.text_input("Nombre contacto emergencia", placeholder="Ej: María González")
+
+            # ── Sección 3: Datos Laborales ────────────────────
+            st.markdown("""
+            <div style="display:flex;align-items:center;gap:10px;margin:18px 0 14px;">
+              <div style="width:4px;height:20px;background:#7c3aed;border-radius:2px;"></div>
+              <span style="font-size:13px;font-weight:700;color:#0f172a;text-transform:uppercase;
+                    letter-spacing:0.8px;">Datos Laborales</span>
+            </div>""", unsafe_allow_html=True)
+
+            c1, c2 = st.columns(2)
+            with c1:
+                cargo         = st.text_input("Cargo / Puesto *", placeholder="Ej: Jefe de Operaciones")
+                tipo_contrato = st.selectbox("Tipo de contrato", CONTRATOS)
+                afp           = st.selectbox("AFP", AFPS)
+                dias_vac      = st.number_input("Vacaciones por ley (días)", min_value=0, max_value=60, step=1, value=15)
+            with c2:
+                area          = st.text_input("Área / Departamento", placeholder="Ej: Operaciones, RRHH, TI")
+                fecha_ingreso = st.date_input("Fecha de ingreso a la empresa",
+                                              value=None,
+                                              format="DD/MM/YYYY")
+                salud         = st.selectbox("Sistema de salud", SALUD)
+                observaciones = st.text_area("Observaciones", placeholder="Notas adicionales...", height=80)
+
+            st.markdown("<div style='height:6px'></div>", unsafe_allow_html=True)
+
+            if st.form_submit_button("💾  Registrar Empleado", use_container_width=True):
                 if not nombre.strip():
-                    st.error("El nombre es obligatorio.")
+                    st.error("⚠️  El nombre completo es obligatorio.")
+                elif not rut.strip():
+                    st.error("⚠️  El RUT es obligatorio.")
+                elif not cargo.strip():
+                    st.error("⚠️  El cargo es obligatorio.")
                 else:
-                    cursor.execute("INSERT INTO empleados (nombre,cargo,dias_vacaciones) VALUES (?,?,?)",
-                                   (nombre.strip(), cargo.strip(), dias))
+                    cursor.execute("""
+                        INSERT INTO empleados
+                        (nombre, rut, fecha_nacimiento, nacionalidad, direccion, email,
+                         telefono, telefono_emergencia, contacto_emergencia, fecha_ingreso,
+                         cargo, area, tipo_contrato, afp, salud, dias_vacaciones, observaciones)
+                        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                    """, (
+                        nombre.strip(), rut.strip(),
+                        str(fecha_nac)   if fecha_nac   else None,
+                        nacionalidad, direccion.strip(), email.strip(),
+                        telefono.strip(), tel_emerg.strip(), contacto_emerg.strip(),
+                        str(fecha_ingreso) if fecha_ingreso else None,
+                        cargo.strip(), area.strip(), tipo_contrato,
+                        afp, salud, dias_vac, observaciones.strip()
+                    ))
                     conn.commit()
-                    st.success(f"Empleado **{nombre.strip()}** registrado correctamente.")
+                    st.success(f"✅  Empleado **{nombre.strip()}** registrado correctamente.")
                     st.rerun()
 
     with tab2:
         df = obtener_empleados()
         if df.empty:
-            st.info("No hay empleados registrados.")
+            st.info("No hay empleados registrados. Use la pestaña **Nuevo Empleado**.")
         else:
+            # Tabla resumen con columnas clave
             resumen = []
             for _, row in df.iterrows():
                 t, c, s = obtener_resumen_vacaciones(row["id"])
-                resumen.append({"ID": row["id"], "Nombre": row["nombre"], "Cargo": row["cargo"],
-                                "Total": t, "Consumidos": c, "Saldo": s})
+                resumen.append({
+                    "ID":            row["id"],
+                    "Nombre":        row.get("nombre",""),
+                    "RUT":           row.get("rut","—"),
+                    "Cargo":         row.get("cargo","—"),
+                    "Área":          row.get("area","—"),
+                    "Contrato":      row.get("tipo_contrato","—"),
+                    "Ingreso":       row.get("fecha_ingreso","—"),
+                    "Teléfono":      row.get("telefono","—"),
+                    "Vacac. Total":  t,
+                    "Saldo":         s,
+                })
             df_r = pd.DataFrame(resumen)
-            st.markdown(f'<div style="font-size:12px;color:#64748b;margin-bottom:8px;"><b>{len(df_r)}</b> empleado(s)</div>', unsafe_allow_html=True)
+            st.markdown(
+                f'<div style="font-size:12px;color:#64748b;margin-bottom:10px;">'
+                f'<b>{len(df_r)}</b> empleado(s) registrado(s)</div>',
+                unsafe_allow_html=True
+            )
             st.dataframe(df_r, use_container_width=True, hide_index=True)
+
             st.divider()
-            st.markdown('<div style="font-size:14px;font-weight:700;color:#0f172a;margin-bottom:8px;">Eliminar Empleado</div>', unsafe_allow_html=True)
-            st.caption("Se eliminarán también sus registros de vacaciones y turnos.")
+            st.markdown('<div style="font-size:14px;font-weight:700;color:#0f172a;margin-bottom:6px;">Eliminar Empleado</div>', unsafe_allow_html=True)
+            st.caption("Se eliminarán también sus registros de vacaciones y turnos asociados.")
             col1, col2 = st.columns([3, 1])
             with col1:
-                ops = {f"{r['Nombre']}  —  {r['Cargo']}": r["ID"] for _, r in df_r.iterrows()}
-                sel = st.selectbox("Seleccionar", list(ops.keys()), label_visibility="collapsed")
+                ops = {f"{r['Nombre']}  —  {r['RUT']}  —  {r['Cargo']}": r["ID"]
+                       for _, r in df_r.iterrows()}
+                sel = st.selectbox("Seleccionar empleado", list(ops.keys()), label_visibility="collapsed")
             with col2:
                 if st.button("Eliminar", type="secondary", use_container_width=True):
                     eid = ops[sel]
@@ -764,6 +904,87 @@ elif menu == "Empleados":
                     conn.commit()
                     st.success("Empleado eliminado.")
                     st.rerun()
+
+    with tab3:
+        df = obtener_empleados()
+        if df.empty:
+            st.info("No hay empleados registrados.")
+        else:
+            emp_sel = st.selectbox("Seleccionar empleado", df["nombre"].tolist(), key="ficha_sel")
+            row = df[df["nombre"] == emp_sel].iloc[0]
+            t, c, s = obtener_resumen_vacaciones(int(row["id"]))
+
+            def campo(label, value):
+                v = value if (value and str(value) not in ["None","nan","—",""] ) else "—"
+                return (f'<div style="margin-bottom:12px;">'
+                        f'<div style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;'
+                        f'letter-spacing:0.9px;margin-bottom:3px;">{label}</div>'
+                        f'<div style="font-size:14px;font-weight:500;color:#0f172a;">{v}</div>'
+                        f'</div>')
+
+            col1, col2, col3 = st.columns(3)
+
+            with col1:
+                st.markdown("""
+                <div style="font-size:12px;font-weight:700;color:#1d4ed8;text-transform:uppercase;
+                     letter-spacing:1px;margin-bottom:12px;">Datos Personales</div>""",
+                unsafe_allow_html=True)
+                st.markdown(
+                    campo("Nombre Completo",    row.get("nombre","")) +
+                    campo("RUT",                row.get("rut","")) +
+                    campo("Fecha Nacimiento",   row.get("fecha_nacimiento","")) +
+                    campo("Nacionalidad",       row.get("nacionalidad","")) +
+                    campo("Dirección",          row.get("direccion","")) +
+                    campo("Correo",             row.get("email","")),
+                    unsafe_allow_html=True
+                )
+
+            with col2:
+                st.markdown("""
+                <div style="font-size:12px;font-weight:700;color:#059669;text-transform:uppercase;
+                     letter-spacing:1px;margin-bottom:12px;">Contacto y Emergencia</div>""",
+                unsafe_allow_html=True)
+                st.markdown(
+                    campo("Teléfono",           row.get("telefono","")) +
+                    campo("Tel. Emergencia",    row.get("telefono_emergencia","")) +
+                    campo("Contacto Emergencia",row.get("contacto_emergencia","")),
+                    unsafe_allow_html=True
+                )
+                st.markdown("""
+                <div style="font-size:12px;font-weight:700;color:#7c3aed;text-transform:uppercase;
+                     letter-spacing:1px;margin:14px 0 12px;">Datos Laborales</div>""",
+                unsafe_allow_html=True)
+                st.markdown(
+                    campo("Cargo",              row.get("cargo","")) +
+                    campo("Área",               row.get("area","")) +
+                    campo("Tipo Contrato",      row.get("tipo_contrato","")) +
+                    campo("Fecha Ingreso",      row.get("fecha_ingreso","")) +
+                    campo("AFP",                row.get("afp","")) +
+                    campo("Sistema Salud",      row.get("salud","")),
+                    unsafe_allow_html=True
+                )
+
+            with col3:
+                st.markdown("""
+                <div style="font-size:12px;font-weight:700;color:#b45309;text-transform:uppercase;
+                     letter-spacing:1px;margin-bottom:12px;">Resumen Vacaciones</div>""",
+                unsafe_allow_html=True)
+                c1m, c2m = st.columns(2)
+                c1m.metric("Total",     t)
+                c2m.metric("Saldo",     s)
+                st.metric("Consumidos", c)
+
+                if row.get("observaciones",""):
+                    st.markdown("""
+                    <div style="font-size:12px;font-weight:700;color:#64748b;text-transform:uppercase;
+                         letter-spacing:1px;margin:14px 0 8px;">Observaciones</div>""",
+                    unsafe_allow_html=True)
+                    st.markdown(
+                        f'<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;'
+                        f'padding:12px 14px;font-size:13px;color:#374151;">'
+                        f'{row.get("observaciones","")}</div>',
+                        unsafe_allow_html=True
+                    )
 
 # =========================================================
 # VACACIONES
